@@ -1,19 +1,21 @@
 import React, { useRef, useState } from "react";
 import { Form, Button, Card, Alert } from "react-bootstrap";
 import { useAuth } from "../contexts/AuthContext";
-import {useCode} from "../contexts/CodeContext";
+import { useCode } from "../contexts/CodeContext";
 import { Link, useHistory } from "react-router-dom";
 import referralCodeGenerator from "referral-code-generator";
 import { doc, addDoc, getDocs, updateDoc } from "firebase/firestore";
 import { colRef, db } from "../firebase";
+import validator from "validator";
 export default function Signup() {
   const emailRef = useRef();
   const passwordRef = useRef();
   const passwordConfirmRef = useRef();
-  // const referralCodeRef = useRef();
+  const nameRef = useRef();
+  const [phone, setPhoneNumber] = useState("");
   const [referralCode, setReferralCode] = useState("");
   const { signup } = useAuth();
-  const {setUserCode} = useCode();
+  const { setUserCode } = useCode();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -25,12 +27,28 @@ export default function Signup() {
     if (passwordRef.current.value !== passwordConfirmRef.current.value) {
       return setError("Passwords do not match");
     }
-
+    const isValidPhoneNumber = validator.isMobilePhone(phone);
+    if (!isValidPhoneNumber) {
+      return setError("Wrong Mobile Number");
+    }
     try {
-      const uniqueCode = referralCodeGenerator.alphaNumeric("uppercase", 5, 6);
+      setError("");
+      setLoading(true);
+      await signup(emailRef.current.value, passwordRef.current.value);
+
+      let userEmail = emailRef.current.value;
+      const uniqueCode =
+        userEmail.substring(0, 3) +
+        referralCodeGenerator.alphaNumeric("uppercase", 3, 2).substring(0, 5);
       setUserCode(uniqueCode);
-      console.log(referralCode);
-      console.log("entered here", 1);
+      console.log(uniqueCode);
+      addDoc(colRef, {
+        name: nameRef.current.value,
+        phone: phone,
+        email: emailRef.current.value,
+        code: uniqueCode,
+        count: 0,
+      }).catch((err) => console.log(err));
       getDocs(colRef)
         .then((snapshot) => {
           snapshot.docs.forEach((docdata) => {
@@ -45,14 +63,6 @@ export default function Signup() {
           });
         })
         .catch((err) => console.log(err));
-      setError("");
-      setLoading(true);
-      await signup(emailRef.current.value, passwordRef.current.value);
-      addDoc(colRef, {
-        email: emailRef.current.value,
-        code: uniqueCode,
-        count: 0,
-      }).catch((err) => console.log(err));
       history.push("/");
     } catch (err) {
       console.log(err);
@@ -74,6 +84,18 @@ export default function Signup() {
               <Form.Control
                 type="text"
                 onChange={(e) => setReferralCode(e.target.value)}
+              />
+            </Form.Group>
+            <Form.Group id="name">
+              <Form.Label>Name</Form.Label>
+              <Form.Control type="text" ref={nameRef} required />
+            </Form.Group>
+            <Form.Group id="phone">
+              <Form.Label>Phone Number</Form.Label>
+              <Form.Control
+                type="text"
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                required
               />
             </Form.Group>
             <Form.Group id="email">

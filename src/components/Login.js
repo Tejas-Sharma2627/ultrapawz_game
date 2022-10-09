@@ -1,8 +1,9 @@
 import React, { useRef, useState } from "react"
 import { Form, Button, Card, Alert } from "react-bootstrap"
 import { useAuth } from "../contexts/AuthContext"
+import { useCode } from "../contexts/CodeContext"
 import { Link, useHistory } from "react-router-dom"
-
+import { getStoredCode } from "../util/GetStoredCode"
 export default function Login() {
   const emailRef = useRef()
   const passwordRef = useRef()
@@ -10,14 +11,17 @@ export default function Login() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const history = useHistory()
-
+  const {userCode, setUserCode} = useCode();
   async function handleSubmit(e) {
     e.preventDefault()
 
     try {
       setError("")
       setLoading(true)
-      await login(emailRef.current.value, passwordRef.current.value)
+      await login(emailRef.current.value, passwordRef.current.value);
+      const loginUserCode = await getStoredCode(emailRef.current.value);
+      console.log(loginUserCode);
+      setUserCode(loginUserCode);
       history.push("/")
     } catch(err) {
       console.log(err);

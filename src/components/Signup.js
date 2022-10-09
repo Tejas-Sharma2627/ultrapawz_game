@@ -15,7 +15,7 @@ export default function Signup() {
   const [phone, setPhoneNumber] = useState("");
   const [referralCode, setReferralCode] = useState("");
   const { signup } = useAuth();
-  const { setUserCode } = useCode();
+  const { setUserCode, setReferralCounts } = useCode();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -42,6 +42,7 @@ export default function Signup() {
         referralCodeGenerator.alphaNumeric("uppercase", 3, 2).substring(0, 5);
       setUserCode(uniqueCode);
       console.log(uniqueCode);
+      setReferralCounts(0);
       addDoc(colRef, {
         name: nameRef.current.value,
         phone: phone,

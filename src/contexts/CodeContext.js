@@ -7,7 +7,8 @@ export function useCode(){
 
 export function CodeProvider({children}){
     const[userCode, setUserCode] = useState('');
-    const value = {userCode, setUserCode};
+    const [referralCounts, setReferralCounts] = useState(0);
+    const value = {userCode, setUserCode, referralCounts, setReferralCounts};
     return(
         <CodeContext.Provider value={value}>
             {children}

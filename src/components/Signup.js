@@ -2,26 +2,28 @@ import React, { useRef, useState } from "react";
 import { Form, Button, Card, Alert } from "react-bootstrap";
 import { useAuth } from "../contexts/AuthContext";
 import { useCode } from "../contexts/CodeContext";
-import { Link, useHistory } from "react-router-dom";
+import { Link, useHistory, useLocation } from "react-router-dom";
 import referralCodeGenerator from "referral-code-generator";
 import { doc, addDoc, getDocs, updateDoc } from "firebase/firestore";
 import { colRef, db } from "../firebase";
 import validator from "validator";
 export default function Signup() {
+  const location = useLocation();
+  const params = new URLSearchParams(location.search)
   const emailRef = useRef();
   const passwordRef = useRef();
   const passwordConfirmRef = useRef();
   const nameRef = useRef();
   const [phone, setPhoneNumber] = useState("");
-  const [referralCode, setReferralCode] = useState("");
+  const [referralCode, setReferralCode] = useState(params.get("code")!=null?params.get("code"):"");
   const { signup } = useAuth();
   const { setUserCode, setReferralCounts } = useCode();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-
   const history = useHistory();
-
+  
   async function handleSubmit(e) {
+    console.log(params.get("code"));
     e.preventDefault();
 
     if (passwordRef.current.value !== passwordConfirmRef.current.value) {
@@ -85,6 +87,8 @@ export default function Signup() {
               <Form.Control
                 type="text"
                 onChange={(e) => setReferralCode(e.target.value)}
+                value={referralCode}
+                disabled={referralCode!==""}
               />
             </Form.Group>
             <Form.Group id="name">
